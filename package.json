@@ -1,0 +1,28 @@
+{
+  "name": "simple-ai-for-obsidian",
+  "version": "1.0.0",
+  "description": "I have a few features that I like to have in Obsidian ( mostly some of the features in Text-Generator plugin for Obsidian). But, for some reason, the Text-Generator plugin seems to not be working on Obsidian Mobile for Android.",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shashiosp2/Simple-AI-for-Obsidian.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/shashiosp2/Simple-AI-for-Obsidian/issues"
+  },
+  "homepage": "https://github.com/shashiosp2/Simple-AI-for-Obsidian#readme",
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "obsidian": "^1.12.3",
+    "tslib": "^2.8.1",
+    "typescript": "^6.0.2"
+  }
+}

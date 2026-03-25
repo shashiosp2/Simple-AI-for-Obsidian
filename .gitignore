@@ -1,1 +1,13 @@
+# Node.js
+node_modules/
+
+# Build output
+main.js
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Gemini CLI
 git.tar.gz
+next-steps.md
