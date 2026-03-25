@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "inlineSourceMap": true,
     "inlineSources": true,
     "module": "CommonJS",
@@ -14,5 +15,5 @@
     "lib": ["DOM", "ES2020"],
     "types": ["node"]
   },
-  "include": ["main.ts"]
+  "include": ["src/main.ts"]
 }

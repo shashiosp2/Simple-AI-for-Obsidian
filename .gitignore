@@ -3,6 +3,7 @@ node_modules/
 
 # Build output
 main.js
+src/**/*.js
 
 # OS specific files
 .DS_Store
