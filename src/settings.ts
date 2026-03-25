@@ -1,5 +1,6 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
+import { App, PluginSettingTab, Setting, Notice } from 'obsidian';
 import SimpleAIPlugin from './main';
+import { GeminiProvider, GroqProvider, ClaudeProvider } from './providers';
 
 export interface SimpleAISettings {
 	geminiApiKey: string;
@@ -51,7 +52,7 @@ export class SimpleAISettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
-		containerEl.createEl('h3', { text: 'API Keys' });
+		containerEl.createEl('h3', { text: 'Gemini Settings' });
 
 		new Setting(containerEl)
 			.setName('Gemini API Key')
@@ -64,6 +65,35 @@ export class SimpleAISettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
+			.setName('Gemini Model')
+			.setDesc('The model to use for Gemini.')
+			.addText(text => text
+				.setValue(this.plugin.settings.geminiModel)
+				.onChange(async (value) => {
+					this.plugin.settings.geminiModel = value;
+					await this.plugin.saveSettings();
+				}))
+			.addButton(button => button
+				.setButtonText('Fetch Models')
+				.onClick(async () => {
+					const provider = new GeminiProvider(this.plugin.settings);
+					try {
+						const models = await provider.fetchModels();
+						if (models.length > 0) {
+							new Notice(`Fetched ${models.length} Gemini models.`);
+							// Ideally pop up a search/select modal, but for simplicity let's just log or show a notice
+							console.log('Gemini Models:', models);
+						} else {
+							new Notice('No models found. Check your API key.');
+						}
+					} catch (e) {
+						new Notice('Error fetching models.');
+					}
+				}));
+
+		containerEl.createEl('h3', { text: 'Groq Settings' });
+
+		new Setting(containerEl)
 			.setName('Groq API Key')
 			.addText(text => text
 				.setPlaceholder('Enter your Groq API key')
@@ -72,6 +102,34 @@ export class SimpleAISettingTab extends PluginSettingTab {
 					this.plugin.settings.groqApiKey = value;
 					await this.plugin.saveSettings();
 				}));
+
+		new Setting(containerEl)
+			.setName('Groq Model')
+			.setDesc('The model to use for Groq.')
+			.addText(text => text
+				.setValue(this.plugin.settings.groqModel)
+				.onChange(async (value) => {
+					this.plugin.settings.groqModel = value;
+					await this.plugin.saveSettings();
+				}))
+			.addButton(button => button
+				.setButtonText('Fetch Models')
+				.onClick(async () => {
+					const provider = new GroqProvider(this.plugin.settings);
+					try {
+						const models = await provider.fetchModels();
+						if (models.length > 0) {
+							new Notice(`Fetched ${models.length} Groq models.`);
+							console.log('Groq Models:', models);
+						} else {
+							new Notice('No models found. Check your API key.');
+						}
+					} catch (e) {
+						new Notice('Error fetching models.');
+					}
+				}));
+
+		containerEl.createEl('h3', { text: 'Claude Settings' });
 
 		new Setting(containerEl)
 			.setName('Claude API Key')
@@ -83,36 +141,25 @@ export class SimpleAISettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
-		containerEl.createEl('h3', { text: 'Models' });
-
-		new Setting(containerEl)
-			.setName('Gemini Model')
-			.addText(text => text
-				.setValue(this.plugin.settings.geminiModel)
-				.onChange(async (value) => {
-					this.plugin.settings.geminiModel = value;
-					await this.plugin.saveSettings();
-				}));
-
-		new Setting(containerEl)
-			.setName('Groq Model')
-			.addText(text => text
-				.setValue(this.plugin.settings.groqModel)
-				.onChange(async (value) => {
-					this.plugin.settings.groqModel = value;
-					await this.plugin.saveSettings();
-				}));
-
 		new Setting(containerEl)
 			.setName('Claude Model')
+			.setDesc('The model to use for Claude.')
 			.addText(text => text
 				.setValue(this.plugin.settings.claudeModel)
 				.onChange(async (value) => {
 					this.plugin.settings.claudeModel = value;
 					await this.plugin.saveSettings();
+				}))
+			.addButton(button => button
+				.setButtonText('Get Default Models')
+				.onClick(async () => {
+					const provider = new ClaudeProvider(this.plugin.settings);
+					const models = await provider.fetchModels();
+					new Notice(`Common Claude models: ${models.join(', ')}`);
+					console.log('Claude Models:', models);
 				}));
 
-		containerEl.createEl('h3', { text: 'Global' });
+		containerEl.createEl('h3', { text: 'Global Settings' });
 
 		new Setting(containerEl)
 			.setName('System Prompt')
