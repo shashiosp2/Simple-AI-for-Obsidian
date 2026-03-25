@@ -1,4 +1,4 @@
-import { Plugin, Editor, MarkdownView, Notice, addIcon } from 'obsidian';
+import { Plugin, Editor, MarkdownView, Notice } from 'obsidian';
 import { SimpleAISettings, DEFAULT_SETTINGS, SimpleAISettingTab } from './settings';
 import { AIProvider, GeminiProvider, GroqProvider, ClaudeProvider } from './providers';
 
@@ -71,27 +71,63 @@ export default class SimpleAIPlugin extends Plugin {
 		}
 
 		const provider = this.getProvider();
-		const systemPrompt = this.settings.systemPrompt;
 
-		new Notice(`Calling ${provider.name}...`);
+		// Validate settings for current provider
+		try {
+			this.validateProviderSettings(this.settings.activeProvider);
+		} catch (e: any) {
+			new Notice(e.message);
+			return;
+		}
+
+		const systemPrompt = this.settings.systemPrompt;
+		const notice = new Notice(`Calling ${provider.name}...`, 0); // Permanent notice
+
+		// Add a loading placeholder
+		const cursor = activeEditor.getCursor('to');
+		const lineCount = activeEditor.lineCount();
+		const placeholder = '\n\n> [!info] Generating response... \n\n';
+		
+		if (useFullFile) {
+			activeEditor.replaceRange(placeholder, { line: lineCount, ch: 0 });
+		} else {
+			activeEditor.replaceRange(placeholder, cursor);
+		}
 
 		try {
 			const response = await provider.generateResponse(selection, systemPrompt);
 			
-			if (useFullFile) {
-				// Append to the end of the file
-				const lineCount = activeEditor.lineCount();
-				activeEditor.replaceRange(`\n\n---\n\n${response}`, { line: lineCount, ch: 0 });
-			} else {
-				// Insert after selection
-				const cursor = activeEditor.getCursor('to');
-				activeEditor.replaceRange(`\n\n${response}`, cursor);
-			}
+			// Remove placeholder and insert response
+			const startPos = useFullFile ? { line: lineCount, ch: 0 } : cursor;
+			const endPos = activeEditor.offsetToPos(activeEditor.posToOffset(startPos) + placeholder.length);
 			
+			activeEditor.replaceRange(`\n\n${response}\n\n`, startPos, endPos);
+			
+			notice.hide();
 			new Notice('AI response received.');
 		} catch (error: any) {
 			console.error('Simple AI Error:', error);
+			// Remove placeholder on error
+			const startPos = useFullFile ? { line: lineCount, ch: 0 } : cursor;
+			const endPos = activeEditor.offsetToPos(activeEditor.posToOffset(startPos) + placeholder.length);
+			activeEditor.replaceRange('', startPos, endPos);
+
+			notice.hide();
 			new Notice(`Error: ${error.message || error}`);
+		}
+	}
+
+	validateProviderSettings(provider: string) {
+		switch (provider) {
+			case 'gemini':
+				if (!this.settings.geminiApiKey) throw new Error('Gemini API Key is missing.');
+				break;
+			case 'groq':
+				if (!this.settings.groqApiKey) throw new Error('Groq API Key is missing.');
+				break;
+			case 'claude':
+				if (!this.settings.claudeApiKey) throw new Error('Claude API Key is missing.');
+				break;
 		}
 	}
 }
